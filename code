@@ -1,0 +1,42 @@
+# Install necessary packages
+!pip install transformers torch --quiet
+
+from transformers import pipeline
+import ipywidgets as widgets
+from IPython.display import display
+
+# Load the summarization pipeline
+summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
+
+# Create input and output widgets
+input_box = widgets.Textarea(
+    placeholder='Paste your article here...',
+    description='Article:',
+    layout=widgets.Layout(width='100%', height='200px')
+)
+
+output_box = widgets.Textarea(
+    placeholder='Summary will appear here...',
+    description='Summary:',
+    layout=widgets.Layout(width='100%', height='150px'),
+    disabled=True
+)
+
+button = widgets.Button(description="Summarize")
+
+# Define what happens when the button is clicked
+def on_button_clicked(b):
+    text = input_box.value.strip()
+    if text:
+        try:
+            summary = summarizer(text, max_length=150, min_length=40, do_sample=False)
+            output_box.value = summary[0]['summary_text']
+        except Exception as e:
+            output_box.value = f"Error: {str(e)}"
+    else:
+        output_box.value = "Please enter some text to summarize."
+
+button.on_click(on_button_clicked)
+
+# Display the widgets in Colab
+display(input_box, button, output_box)
